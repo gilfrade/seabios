@@ -217,6 +217,11 @@ maininit(void)
     // Run option roms
     optionrom_setup();
 
+    while (bootlist_count() <= 2) {
+        device_hardware_setup();
+        wait_threads();
+    }
+
     // Allow user to modify overall boot order.
     interactive_bootmenu();
     wait_threads();
