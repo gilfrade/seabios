@@ -440,6 +440,16 @@ boot_add_cbfs(void *data, const char *desc, int prio)
     bootentry_add(IPL_TYPE_CBFS, defPrio(prio, DEFAULT_PRIO), (u32)data, desc);
 }
 
+int
+bootlist_count(void)
+{
+    struct bootentry_s *pos;
+    int list_count = 0;
+    hlist_for_each_entry(pos, &BootList, node) {
+        list_count++;
+    }
+    return list_count;
+}
 
 /****************************************************************
  * Keyboard calls
