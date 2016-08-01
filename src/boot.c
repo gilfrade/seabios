@@ -353,25 +353,37 @@ bootentry_add(int type, int prio, u32 data, const char *desc)
     dprintf(3, "Registering bootable: %s (type:%d prio:%d data:%x)\n"
             , be->description, type, prio, data);
 
-    // Add entry in sorted order.
-    struct hlist_node **pprev;
+    // Check if bootable already exists in BootList
     struct bootentry_s *pos;
-    hlist_for_each_entry_pprev(pos, pprev, &BootList, node) {
-        if (be->priority < pos->priority)
+    int unique = 1;
+    hlist_for_each_entry(pos, &BootList, node) {
+        if (be->data == pos->data) {
+            unique = 0;
+            dprintf(3, "Bootable: %s (type:%d prio:%d data:%x) already exists\n"
+                    , be->description, type, prio, data);
             break;
-        if (be->priority > pos->priority)
-            continue;
-        if (be->type < pos->type)
-            break;
-        if (be->type > pos->type)
-            continue;
-        if (be->type <= IPL_TYPE_CDROM
-            && (be->drive->type < pos->drive->type
-                || (be->drive->type == pos->drive->type
-                    && be->drive->cntl_id < pos->drive->cntl_id)))
-            break;
+        }
     }
+    // Add entry in sorted order.
+    if (unique) {
+        struct hlist_node **pprev;
+        hlist_for_each_entry_pprev(pos, pprev, &BootList, node) {
+            if (be->priority < pos->priority)
+                break;
+            if (be->priority > pos->priority)
+                continue;
+            if (be->type < pos->type)
+                break;
+            if (be->type > pos->type)
+                continue;
+            if (be->type <= IPL_TYPE_CDROM
+                && (be->drive->type < pos->drive->type
+                    || (be->drive->type == pos->drive->type
+                        && be->drive->cntl_id < pos->drive->cntl_id)))
+                break;
+        }
     hlist_add(&be->node, pprev);
+    }
 }
 
 // Return the given priority if it's set - defaultprio otherwise.
